@@ -109,7 +109,7 @@ export default function list({ table }: { table: any }) {
         <Layout>
             <div className='p-2'>
                 <div className='bg-green-200 w-full p-10'>
-                    <h1 className='text-lg text-green-800'>Selamat Datang di Dashboard Admin Teman K3</h1>
+                    <h1 className='text-lg text-green-800'>Selamat Datang di Dashboard Admin KaltengVentura</h1>
                 </div>
             </div>
         </Layout>

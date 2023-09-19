@@ -1,26 +1,26 @@
 import Button from '@/components/Button'
 import Layout from '@/components/Layout'
 import React, { useState, useEffect } from 'react'
-import DataTable from 'react-data-table-component'
+import DataTable, { ExpanderComponentProps } from 'react-data-table-component'
 import { createUserWithEmailAndPassword, getAuth } from 'firebase/auth'
 import { useRouter } from 'next/router'
 import useModal, { Modal } from '@/components/Modal'
 import axios from 'axios'
 import Input from '@/components/Input'
 import { CONFIG } from '@/config'
-import { User } from '@/types/user'
+import { Debtor } from '@/types/debtor'
 
 export async function getServerSideProps(context: any) {
-    const { search } = context.query;
+    const { search, page, size } = context.query;
     try {
-        const result = await axios.get(CONFIG.base_url_api + '/user/list?search=' + (search || ""), {
+        const result = await axios.get(CONFIG.base_url_api + `/debtor/list?search=${search || ""}&page=${page || 1}&size=${size}`, {
             headers: {
                 "bearer-token": "kaltengventura2023"
             }
         })
         return {
             props: {
-                table: result.data.items || []
+                table: result.data || []
             }
         }
     } catch (error) {
@@ -37,27 +37,55 @@ export default function list({ table }: { table: any }) {
         {
             name: "Nama",
             right: false,
-            selector: (row: User) => row?.name
+            selector: (row: Debtor) => row?.name
         },
         {
-            name: "Email",
+            name: "Nama Ibu Kandung",
             right: false,
-            selector: (row: User) => row?.email
+            selector: (row: Debtor) => row?.mother_name
         },
         {
-            name: "No HP",
+            name: "Bidang",
             right: false,
-            selector: (row: User) => row?.phone
+            selector: (row: Debtor) => row?.field_type
         },
         {
-            name: "Foto",
+            name: "Status Tempat Tinggal",
             right: false,
-            selector: (row: User) => row.photo ? <img src={row.photo} className='w-6 h-10' /> : "-"
+            selector: (row: Debtor) => row?.place_status
+        },
+        {
+            name: "Pinjaman Lain",
+            right: false,
+            selector: (row: Debtor) => row?.other_loan_name || "-"
+        },
+        {
+            name: "KK",
+            right: false,
+            selector: (row: Debtor) => row.kk ? <img src={row.kk} className='w-10 h-6' /> : "-"
+        },
+        {
+            name: "KTP",
+            right: false,
+            selector: (row: Debtor) => row.ktp ? <img src={row.ktp} className='w-10 h-6' /> : "-"
         },
         {
             name: "Status",
             right: false,
-            selector: (row: User) => row?.status
+            selector: (row: Debtor) => row?.status
+        },
+        {
+            name: "Aksi",
+            right: false,
+            selector: (row: Debtor) => <>
+                <button className='text-green-500'>
+                    Terima
+                </button>
+                &nbsp;
+                <button className='text-red-500'>
+                    Tolak
+                </button>
+            </>
         },
     ]
 
@@ -78,6 +106,20 @@ export default function list({ table }: { table: any }) {
     //         console.log(error);
     //     }
     // }
+    const ExpandedComponent: React.FC<ExpanderComponentProps<any>> = ({ data }) => {
+        return (
+            <div className='sm:p-5 sm:pl-16'>
+                <div className='flex justify-start gap-5'>
+                    <p>Nama : </p>
+                    <p>{data?.name}</p>
+                </div>
+                <div className='flex justify-start gap-5'>
+                    <p>Alamat : </p>
+                    <p>{data?.address}</p>
+                </div>
+            </div>
+        )
+    }
     return (
         <Layout>
             <div className='p-2'>
@@ -92,12 +134,20 @@ export default function list({ table }: { table: any }) {
                         show ?
                             <DataTable
                                 columns={columns}
-                                data={table}
-                                paginationTotalRows={table.length}
+                                data={table.items}
+                                paginationTotalRows={table.total_items}
                                 pagination={true}
                                 paginationServer={true}
                                 paginationDefaultPage={1}
                                 striped={true}
+                                expandableRows
+                                expandableRowsComponent={ExpandedComponent}
+                                onChangePage={(pageData) => {
+                                    router.push('?page=' + pageData)
+                                }}
+                                onChangeRowsPerPage={(currentRowsPerPage, currentPage) => {
+                                    router.push(`?page=${currentPage}&size=${currentRowsPerPage}`)
+                                }}
                                 responsive={true}
                                 highlightOnHover
                                 pointerOnHover

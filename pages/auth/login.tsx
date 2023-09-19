@@ -4,6 +4,8 @@ import React, { useState } from 'react'
 import { login } from '../api/member'
 import Swal from 'sweetalert2'
 import { useRouter } from 'next/router'
+import axios from 'axios'
+import { CONFIG } from '@/config'
 
 export default function Login() {
     const [info, setInfo] = useState<any>({ loading: false, message: "", type: null })
@@ -14,10 +16,21 @@ export default function Login() {
         setInfo({ loading: true })
         try {
             const formData: any = Object.fromEntries(new FormData(e.target))
-            Swal.fire({
-                text: "Email atau Password Salah!",
-                icon: "warning"
+            if (!formData?.email?.includes('@kaltengventura')) {
+                Swal.fire({
+                    text: "Email tidak terdaftar",
+                    icon: "warning"
+                })
+                return
+            }
+            const payload = {
+                ...formData
+            }
+            const result = await axios.post(CONFIG.base_url_api + '/user/login', payload, {
+                headers: { 'bearer-token': 'kaltengventura2023' }
             })
+            await localStorage.setItem("uid", payload?.email)
+            router.push('/main/dashboard')
             setInfo({ loading: false, message: "Berhasil Login" })
         } catch (error) {
             console.log(error);
@@ -25,7 +38,7 @@ export default function Login() {
                 text: "Login Gagal",
                 icon: "error"
             })
-            setInfo({ loading: false, message: "Berhasil Login" })
+            setInfo({ loading: false, message: "Gagal Login" })
         }
     }
     return (
