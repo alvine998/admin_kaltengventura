@@ -15,7 +15,7 @@ import { formatDateToIndonesian, formatToIDRCurrency } from '@/utils'
 export async function getServerSideProps(context: any) {
     const { search, page, size } = context.query;
     try {
-        const result = await axios.get(CONFIG.base_url_api + `/payment/list?search=${(search || "")}&page=${page || 1}&size=${size}`, {
+        const result = await axios.get(CONFIG.base_url_api + `/payment/list?search=${(search || "")}&page=${page || 1}&size=${size}&status=paid`, {
             headers: {
                 "bearer-token": "kaltengventura2023"
             }
@@ -123,9 +123,6 @@ export default function list({ table }: { table: any }) {
                 <Input label='' placeholder='Cari Disini...' onChange={(e) => {
                     router.push(`?search=${e.target.value}`)
                 }} />
-                <Button type='button' onClick={() => {
-                    setModal({ ...modal, open: true, key: "create", data: null })
-                }}>Tambah Data</Button>
                 <div>
                     {
                         show ?
