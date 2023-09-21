@@ -9,20 +9,28 @@ import axios from 'axios'
 import Input from '@/components/Input'
 import { CONFIG } from '@/config'
 import { Debtor } from '@/types/debtor'
+import { Payment } from '@/types/payment'
+import { formatDateToIndonesian, formatToIDRCurrency } from '@/utils'
+import { Application } from '@/types/application'
+import { FaCheck, FaX } from 'react-icons/fa6'
 import { RxDoubleArrowRight } from 'react-icons/rx'
-import { FaCheck, FaPencil, FaTrash, FaX } from 'react-icons/fa6'
 
 export async function getServerSideProps(context: any) {
     const { search, page, size } = context.query;
+    const { pay_id, id } = context.params
+
     try {
-        const result = await axios.get(CONFIG.base_url_api + `/debtor/list?search=${search || ""}`, {
+        const result = await axios.get(CONFIG.base_url_api + `/payment/list?search=${(search || "")}&application_id=${pay_id}`, {
             headers: {
                 "bearer-token": "kaltengventura2023"
             }
         })
         return {
             props: {
-                table: result.data || []
+                table: result.data || [],
+                params: {
+                    id: id
+                }
             }
         }
     } catch (error) {
@@ -30,62 +38,45 @@ export async function getServerSideProps(context: any) {
     }
 }
 
-export default function list({ table }: { table: any }) {
+export default function list({ table, params }: any) {
     const [info, setInfo] = useState<any>({ loading: false, message: "" })
     const [modal, setModal] = useModal<any>()
     const router = useRouter();
     const [show, setShow] = useState<boolean>(false)
     const columns: any = [
         {
-            name: "Nama",
+            name: "No Kontrak",
             right: false,
-            selector: (row: Debtor) => row?.name
+            selector: (row: Application) => row?.contract_no
         },
         {
-            name: "Nama Ibu Kandung",
+            name: "Total Pinjaman",
             right: false,
-            selector: (row: Debtor) => row?.mother_name
+            selector: (row: Application) => formatToIDRCurrency(row?.loan)
         },
         {
-            name: "Bidang",
+            name: "Jangka Waktu",
             right: false,
-            selector: (row: Debtor) => row?.field_type
+            selector: (row: Application) => row?.year + ' tahun'
         },
         {
-            name: "Status Tempat Tinggal",
+            name: "Cicilan",
             right: false,
-            selector: (row: Debtor) => row?.place_status
-        },
-        {
-            name: "Pinjaman Lain",
-            right: false,
-            selector: (row: Debtor) => row?.other_loan_name || "-"
-        },
-        {
-            name: "KK",
-            right: false,
-            selector: (row: Debtor) => row.kk ? <img src={row.kk} className='w-10 h-6' /> : "-"
-        },
-        {
-            name: "KTP",
-            right: false,
-            selector: (row: Debtor) => row.ktp ? <img src={row.ktp} className='w-10 h-6' /> : "-"
+            selector: (row: Application) => formatToIDRCurrency(row?.installment) + ' /bulan'
         },
         {
             name: "Status",
             right: false,
-            selector: (row: Debtor) => row?.status
+            selector: (row: Application) => row?.status == "rejected" ? "Tidak Lolos" : row?.status == "approved" ? "Lolos" : "Menunggu"
         },
         {
             name: "Aksi",
             right: false,
-            selector: (row: Debtor) => <>
+            selector: (row: Application) => <>
                 {
                     (row?.status == 'waiting' || row?.status == 'rejected') &&
                     <>
-                        <button onClick={() => {
-                            setModal({ ...modal, open: true, data: row, key: "approved" })
-                        }}>
+                        <button>
                             <FaCheck className='text-blue-500 hover:text-blue-600 duration-300 transition text-[20px]' />
                         </button>
                         &nbsp;
@@ -95,23 +86,12 @@ export default function list({ table }: { table: any }) {
                 {
                     (row?.status == 'waiting' || row?.status == 'rejected') &&
                     <>
-                        <button onClick={() => {
-                            setModal({ ...modal, open: true, data: row, key: "rejected" })
-                        }}>
+                        <button>
                             <FaX className='text-red-500 hover:text-red-600 duration-300 transition text-[20px]' />
                         </button>
                         &nbsp;
                         &nbsp;
                     </>
-                }
-
-                {
-                    row?.status == 'approved' &&
-                    <button onClick={() => {
-                        router.push(`detail/${row?.user_id}`)
-                    }}>
-                        <RxDoubleArrowRight className='text-green-500 hover:green-blue-600 duration-300 transition text-[20px]' />
-                    </button>
                 }
             </>
         },
@@ -123,19 +103,17 @@ export default function list({ table }: { table: any }) {
         }
     }, [])
 
-    const handleVerification = async (e: any) => {
-        e.preventDefault();
-        const formData: any = Object.fromEntries(new FormData(e.target))
-        try {
-            const payload = {
-                ...formData
-            }
-            const result = await axios.patch(CONFIG.base_url_api + `/debtor`, payload)
-            router.push("/main/debtor/list")
-        } catch (error) {
-            console.log(error);
-        }
-    }
+    // const handleCreate = async (e: any) => {
+    //     e.preventDefault();
+    //     const formData: any = Object.fromEntries(new FormData(e.target))
+    //     try {
+    //         const result = await createUserWithEmailAndPassword(auth, formData?.email, formData?.password)
+    //         console.log(result);
+    //         router.push("/main/user/list")
+    //     } catch (error) {
+    //         console.log(error);
+    //     }
+    // }
     const ExpandedComponent: React.FC<ExpanderComponentProps<any>> = ({ data }) => {
         return (
             <div className='sm:p-5 sm:pl-16'>
@@ -153,7 +131,12 @@ export default function list({ table }: { table: any }) {
     return (
         <Layout>
             <div className='p-2'>
-                <h1 className='text-2xl font-semibold'>Data Debitur</h1>
+                <div className='flex justify-between'>
+                    <h1 className='text-2xl font-bold'>Data Debitur {`>`} Pengajuan Pembiayaan {`>`} Detail Tagihan</h1>
+                    <div>
+                        <Button color='primary' onClick={() => { router.push(`/main/debtor/detail/${params?.id}`) }} >Kembali</Button>
+                    </div>
+                </div>
                 <Input label='' placeholder='Cari Disini...' onChange={(e) => {
                     router.push(`?search=${e.target.value}`)
                 }} />
@@ -168,22 +151,22 @@ export default function list({ table }: { table: any }) {
                                 paginationServer={true}
                                 paginationDefaultPage={1}
                                 striped={true}
-                                expandableRows
-                                expandableRowsComponent={ExpandedComponent}
                                 // onChangePage={(pageData) => {
                                 //     router.push('?page=' + pageData)
                                 // }}
                                 // onChangeRowsPerPage={(currentRowsPerPage, currentPage) => {
                                 //     router.push(`?page=${currentPage}&size=${currentRowsPerPage}`)
                                 // }}
+                                // expandableRows
+                                // expandableRowsComponent={ExpandedComponent}
                                 responsive={true}
                                 highlightOnHover
                                 pointerOnHover
                             /> : ""
                     }
                 </div>
-                {
-                    modal.key == "approved" || modal.key == "rejected" ?
+                {/* {
+                    modal.key == "create" ?
                         <>
                             <Modal
                                 open={modal.open}
@@ -191,8 +174,8 @@ export default function list({ table }: { table: any }) {
 
                             >
                                 <div>
-                                    <h1 className='text-center font-bold text-lg'>Verifikasi Data Debitur</h1>
-                                    <form onSubmit={handleVerification}>
+                                    <h1 className='text-center font-bold text-lg'>{modal.key == "create" ? "Tambah Data Admin" : "Ubah Data Admin"}</h1>
+                                    <form onSubmit={handleCreate}>
                                         <Input label='Email' placeholder='Masukkan Email' name='email' />
                                         <Input label='Password' type='password' placeholder='********' name='password' />
                                         <div className='my-4'>
@@ -203,7 +186,7 @@ export default function list({ table }: { table: any }) {
                                 </div>
                             </Modal>
                         </> : ""
-                }
+                } */}
             </div>
         </Layout>
     )

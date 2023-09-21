@@ -10,6 +10,8 @@ export interface Debtor {
     ktp:             string;
     kk:              string;
     status:          string;
+    user_id:     number;
+    user_name:   string;
     approved_by:     null;
     created_on:      Date;
     updated_on:      null;

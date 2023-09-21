@@ -12,7 +12,7 @@ import { db } from '@/firebase/config'
 import axios from 'axios'
 import { CONFIG } from '@/config'
 import { formatToIDRCurrency } from '@/utils'
-import { FaMoneyBillTrendUp, FaMoneyBillTransfer, FaMoneyBillWave, FaUserGroup } from 'react-icons/fa6'
+import { FaMoneyBillTrendUp, FaMoneyBillTransfer, FaMoneyBillWave, FaUserGroup, FaUsers } from 'react-icons/fa6'
 
 export async function getServerSideProps(context: any) {
     try {
@@ -26,15 +26,22 @@ export async function getServerSideProps(context: any) {
                 "bearer-token": "kaltengventura2023"
             }
         })
+        const result3 = await axios.get(CONFIG.base_url_api + `/user/list`, {
+            headers: {
+                "bearer-token": "kaltengventura2023"
+            }
+        })
         let count_payment = result.data.items?.reduce((a: any, b: any) => a = a + b.fee, 0)
-        let count_payment_fee = result.data.items?.filter((v:any) => v?.status == 'paid')?.reduce((a: any, b: any) => a = a + b.payment_fee, 0)
+        let count_payment_fee = result.data.items?.filter((v: any) => v?.status == 'paid')?.reduce((a: any, b: any) => a = a + b.payment_fee, 0)
         let total_debtors = result2.data.total_items
+        let total_users = result3.data.total_items
 
         return {
             props: {
                 count_payment: count_payment,
                 count_payment_fee: count_payment_fee,
-                total_debtors: total_debtors
+                total_debtors: total_debtors,
+                total_users: total_users
             }
         }
     } catch (error) {
@@ -42,7 +49,7 @@ export async function getServerSideProps(context: any) {
     }
 }
 
-export default function list({ count_payment, count_payment_fee, total_debtors }: any) {
+export default function list({ count_payment, count_payment_fee, total_debtors, total_users }: any) {
     const [info, setInfo] = useState<any>({ loading: false, message: "" })
     const [modal, setModal] = useModal<any>()
     const router = useRouter();
@@ -68,6 +75,12 @@ export default function list({ count_payment, count_payment_fee, total_debtors }
                     <div className='bg-green-200 w-1/4 p-10 mt-10'>
                         <FaUserGroup className={'text-2xl text-green-800'} />
                         <h1 className='text-lg text-green-800'>Total Debitur : {total_debtors}</h1>
+                    </div>
+                </div>
+                <div>
+                    <div className='bg-green-200 w-1/4 p-10 mt-10'>
+                        <FaUsers className={'text-2xl text-green-800'} />
+                        <h1 className='text-lg text-green-800'>Total Pengguna : {total_users}</h1>
                     </div>
                 </div>
             </div>
