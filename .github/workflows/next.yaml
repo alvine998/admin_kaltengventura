@@ -30,7 +30,9 @@ jobs:
         with:
           push: true
           tags: kiniku90/backend-api:admin-kalteng-ventura
-          no-cache: true
+          build-args: |
+            REACT_API_APP_URL=https://skvapi.kinikumuda.id
+
 
 #       - name: curl
 #         uses: wei/curl@master
