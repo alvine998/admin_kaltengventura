@@ -3,11 +3,13 @@ export interface Payment {
     application_id:       number;
     application_contract: number;
     fee:                  number;
-    due_date:             Date;
+    due_date:             string;
     payment_rate:         number;
     payment_fee:          number;
     payment_date:         null;
     total_payment:        number;
+    remaining_payment:    string;
+    payment_no:           string;
     bank_name:            null;
     account_number:       null;
     account_name:         null;

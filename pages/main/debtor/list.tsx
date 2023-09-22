@@ -30,11 +30,12 @@ export async function getServerSideProps(context: any) {
     }
 }
 
-export default function list({ table }: { table: any }) {
+export default function list({ table }: any) {
     const [info, setInfo] = useState<any>({ loading: false, message: "" })
     const [modal, setModal] = useModal<any>()
     const router = useRouter();
     const [show, setShow] = useState<boolean>(false)
+    const [admin, setAdmin] = useState<any>()
     const columns: any = [
         {
             name: "Nama",
@@ -81,7 +82,7 @@ export default function list({ table }: { table: any }) {
             right: false,
             selector: (row: Debtor) => <>
                 {
-                    (row?.status == 'waiting' || row?.status == 'rejected') &&
+                    (row?.status == 'waiting') &&
                     <>
                         <button onClick={() => {
                             setModal({ ...modal, open: true, data: row, key: "approved" })
@@ -93,7 +94,7 @@ export default function list({ table }: { table: any }) {
                     </>
                 }
                 {
-                    (row?.status == 'waiting' || row?.status == 'rejected') &&
+                    (row?.status == 'waiting') &&
                     <>
                         <button onClick={() => {
                             setModal({ ...modal, open: true, data: row, key: "rejected" })
@@ -117,23 +118,50 @@ export default function list({ table }: { table: any }) {
         },
     ]
 
+    const getAdmin = async () => {
+        const result = await localStorage.getItem("uid")
+        setAdmin(JSON.parse(result!))
+    }
+
     useEffect(() => {
         if (typeof window !== undefined) {
             setShow(!show)
         }
+        getAdmin()
     }, [])
+
+    useEffect(() => {
+        if (info.type) {
+            setTimeout(() => {
+                setInfo({ ...info, type: "", message: "" })
+            }, 3000);
+        }
+    }, [info])
 
     const handleVerification = async (e: any) => {
         e.preventDefault();
+        setInfo({ loading: true })
         const formData: any = Object.fromEntries(new FormData(e.target))
         try {
             const payload = {
-                ...formData
+                ...formData,
+                status: modal.key,
+                id: modal.data.id,
+                approved_by: {
+                    admin_id: formData?.admin_id,
+                    admin_name: formData?.admin_name,
+                    verificated_on: new Date().toISOString(),
+                }
             }
-            const result = await axios.patch(CONFIG.base_url_api + `/debtor`, payload)
-            router.push("/main/debtor/list")
+            const result = await axios.patch(CONFIG.base_url_api + `/debtor`, payload, {
+                headers: { "bearer-token": 'kaltengventura2023' }
+            })
+            setInfo({ loading: false, message: "Berhasil verifikasi", type: "success" })
+            setModal({ ...modal, open: false })
+            router.push("")
         } catch (error) {
             console.log(error);
+            setInfo({ loading: false, message: "Gagal verifikasi", type: "error" })
         }
     }
     const ExpandedComponent: React.FC<ExpanderComponentProps<any>> = ({ data }) => {
@@ -153,6 +181,14 @@ export default function list({ table }: { table: any }) {
     return (
         <Layout>
             <div className='p-2'>
+                {
+                    info.type ?
+                        <>
+                            <div className={`w-full p-2 rounded-lg ${info.type == "success" ? "bg-green-500" : "bg-red-500"}`} >
+                                <p className='text-white' >{info.message}</p>
+                            </div>
+                        </> : ""
+                }
                 <h1 className='text-2xl font-semibold'>Data Debitur</h1>
                 <Input label='' placeholder='Cari Disini...' onChange={(e) => {
                     router.push(`?search=${e.target.value}`)
@@ -193,10 +229,11 @@ export default function list({ table }: { table: any }) {
                                 <div>
                                     <h1 className='text-center font-bold text-lg'>Verifikasi Data Debitur</h1>
                                     <form onSubmit={handleVerification}>
-                                        <Input label='Email' placeholder='Masukkan Email' name='email' />
-                                        <Input label='Password' type='password' placeholder='********' name='password' />
+                                        <input type="text" className='hidden' value={admin?.id} name='admin_id' />
+                                        <input type="text" className='hidden' value={admin?.name} name='admin_name' />
+                                        <p className='text-center'>Apakah anda yakin ingin {modal.key == "approved" ? `menyetujui ${modal.data.name}` : `menolak ${modal.data.name}`}?</p>
                                         <div className='my-4'>
-                                            <Button type='submit'>Simpan</Button>
+                                            <Button type='submit' disabled={info.loading}>{modal.key == 'approved' ? (info.loading ? "Menyetujui..." : "Setujui") : (info.loading ? "Menolak..." : "Tolak")}</Button>
                                             <Button type='button' color='white' onClick={() => { setModal({ ...modal, open: false }) }} >Tutup</Button>
                                         </div>
                                     </form>

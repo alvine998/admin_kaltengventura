@@ -17,7 +17,7 @@ import { RxDoubleArrowRight } from 'react-icons/rx'
 
 export async function getServerSideProps(context: any) {
     const { search, page, size } = context.query;
-    const {id} = context.params
+    const { id } = context.params
     try {
         const result = await axios.get(CONFIG.base_url_api + `/application/list?search=${(search || "")}&user_id=${id}`, {
             headers: {
@@ -26,7 +26,10 @@ export async function getServerSideProps(context: any) {
         })
         return {
             props: {
-                table: result.data || []
+                table: result.data || [],
+                params: {
+                    id: id
+                }
             }
         }
     } catch (error) {
@@ -34,11 +37,12 @@ export async function getServerSideProps(context: any) {
     }
 }
 
-export default function list({ table }: { table: any }) {
+export default function list({ table, params }: any) {
     const [info, setInfo] = useState<any>({ loading: false, message: "" })
     const [modal, setModal] = useModal<any>()
     const router = useRouter();
     const [show, setShow] = useState<boolean>(false)
+    const [admin, setAdmin] = useState<any>()
     const columns: any = [
         {
             name: "No Kontrak",
@@ -70,9 +74,11 @@ export default function list({ table }: { table: any }) {
             right: false,
             selector: (row: Application) => <>
                 {
-                    (row?.status == 'waiting' || row?.status == 'rejected') &&
+                    (row?.status == 'waiting') &&
                     <>
-                        <button>
+                        <button onClick={() => {
+                            setModal({ ...modal, open: true, data: row, key: "approved" })
+                        }}>
                             <FaCheck className='text-blue-500 hover:text-blue-600 duration-300 transition text-[20px]' />
                         </button>
                         &nbsp;
@@ -80,41 +86,75 @@ export default function list({ table }: { table: any }) {
                     </>
                 }
                 {
-                    (row?.status == 'waiting' || row?.status == 'rejected') &&
+                    (row?.status == 'waiting') &&
                     <>
-                        <button>
+                        <button onClick={() => {
+                            setModal({ ...modal, open: true, data: row, key: "rejected" })
+                        }}>
                             <FaX className='text-red-500 hover:text-red-600 duration-300 transition text-[20px]' />
                         </button>
                         &nbsp;
                         &nbsp;
                     </>
                 }
-                <button onClick={() => {
-                    router.push(`/main/debtor/detail/${row?.id}`)
-                }}>
-                    <RxDoubleArrowRight className='text-green-500 hover:green-blue-600 duration-300 transition text-[20px]' />
-                </button>
+                {
+                    (row?.status == 'approved') &&
+                    <button onClick={() => {
+                        router.push(`/main/debtor/detail/${params.id}/payment/${row?.id}`)
+                    }}>
+                        <RxDoubleArrowRight className='text-green-500 hover:green-blue-600 duration-300 transition text-[20px]' />
+                    </button>
+                }
             </>
         },
     ]
+
+    const getAdmin = async () => {
+        const result = await localStorage.getItem("uid")
+        setAdmin(JSON.parse(result!))
+    }
 
     useEffect(() => {
         if (typeof window !== undefined) {
             setShow(!show)
         }
+        getAdmin()
     }, [])
 
-    // const handleCreate = async (e: any) => {
-    //     e.preventDefault();
-    //     const formData: any = Object.fromEntries(new FormData(e.target))
-    //     try {
-    //         const result = await createUserWithEmailAndPassword(auth, formData?.email, formData?.password)
-    //         console.log(result);
-    //         router.push("/main/user/list")
-    //     } catch (error) {
-    //         console.log(error);
-    //     }
-    // }
+    useEffect(() => {
+        if (info.type) {
+            setTimeout(() => {
+                setInfo({ ...info, type: "", message: "" })
+            }, 3000);
+        }
+    }, [info])
+
+    const handleVerification = async (e: any) => {
+        e.preventDefault();
+        setInfo({ loading: true })
+        const formData: any = Object.fromEntries(new FormData(e.target))
+        try {
+            const payload = {
+                ...formData,
+                status: modal.key,
+                id: modal.data.id,
+                admin: {
+                    id: formData?.admin_id,
+                    name: formData?.admin_name,
+                    date: new Date().toISOString(),
+                }
+            }
+            const result = await axios.post(CONFIG.base_url_api + `/application/approval`, payload, {
+                headers: { "bearer-token": 'kaltengventura2023' }
+            })
+            setInfo({ loading: false, message: "Berhasil verifikasi", type: "success" })
+            setModal({ ...modal, open: false })
+            router.push("/main/debtor/detail/" + params.id)
+        } catch (error) {
+            console.log(error);
+            setInfo({ loading: false, message: "Gagal verifikasi", type: "error" })
+        }
+    }
     const ExpandedComponent: React.FC<ExpanderComponentProps<any>> = ({ data }) => {
         return (
             <div className='sm:p-5 sm:pl-16'>
@@ -132,6 +172,14 @@ export default function list({ table }: { table: any }) {
     return (
         <Layout>
             <div className='p-2'>
+                {
+                    info.type ?
+                        <>
+                            <div className={`w-full p-2 rounded-lg ${info.type == "success" ? "bg-green-500" : "bg-red-500"}`} >
+                                <p className='text-white' >{info.message}</p>
+                            </div>
+                        </> : ""
+                }
                 <div className='flex justify-between'>
                     <h1 className='text-2xl font-bold'>Data Debitur {`>`} Pengajuan Pembiayaan</h1>
                     <div>
@@ -166,8 +214,8 @@ export default function list({ table }: { table: any }) {
                             /> : ""
                     }
                 </div>
-                {/* {
-                    modal.key == "create" ?
+                {
+                    modal.key == "approved" || modal.key == "rejected" ?
                         <>
                             <Modal
                                 open={modal.open}
@@ -175,19 +223,18 @@ export default function list({ table }: { table: any }) {
 
                             >
                                 <div>
-                                    <h1 className='text-center font-bold text-lg'>{modal.key == "create" ? "Tambah Data Admin" : "Ubah Data Admin"}</h1>
-                                    <form onSubmit={handleCreate}>
-                                        <Input label='Email' placeholder='Masukkan Email' name='email' />
-                                        <Input label='Password' type='password' placeholder='********' name='password' />
+                                    <h1 className='text-center font-bold text-lg'>Verifikasi Data Debitur</h1>
+                                    <form onSubmit={handleVerification}>
+                                        <p className='text-center'>Apakah anda yakin ingin {modal.key == "approved" ? `menyetujui ${modal.data.user_name}` : `menolak ${modal.data.user_name}`}?</p>
                                         <div className='my-4'>
-                                            <Button type='submit'>Simpan</Button>
+                                            <Button type='submit' disabled={info.loading}>{modal.key == 'approved' ? (info.loading ? "Menyetujui..." : "Setujui") : (info.loading ? "Menolak..." : "Tolak")}</Button>
                                             <Button type='button' color='white' onClick={() => { setModal({ ...modal, open: false }) }} >Tutup</Button>
                                         </div>
                                     </form>
                                 </div>
                             </Modal>
                         </> : ""
-                } */}
+                }
             </div>
         </Layout>
     )

@@ -63,12 +63,16 @@ export default function list({ table }: { table: any }) {
             name: "Aksi",
             right: false,
             selector: (row: User) => <>
-                <button className='text-green-500 text-xs'>
+                <button type='button' onClick={() => {
+                    setModal({ ...modal, open: true, key: "update", data: row })
+                }} className='text-green-500 text-xs'>
                     Edit
                 </button>
                 &nbsp;
                 &nbsp;
-                <button className='text-red-500 text-xs'>
+                <button type='button' onClick={() => {
+                    setModal({ ...modal, open: true, key: "delete", data: row })
+                }} className='text-red-500 text-xs'>
                     Hapus
                 </button>
             </>
@@ -83,20 +87,63 @@ export default function list({ table }: { table: any }) {
 
     const handleCreate = async (e: any) => {
         e.preventDefault();
+        setInfo({ loading: true })
         const formData: any = Object.fromEntries(new FormData(e.target))
         try {
-            const payloada = {
-                ...formData
+            const payload = {
+                ...formData,
+                id: modal.data.id
             }
-            console.log(payloada);
+            let result = null
+            modal.key == "create" ?
+                result = await axios.post(CONFIG.base_url_api + `/user`, payload, {
+                    headers: { "bearer-token": 'kaltengventura2023' }
+                }) : result = await axios.patch(CONFIG.base_url_api + `/user`, payload, {
+                    headers: { "bearer-token": 'kaltengventura2023' }
+                })
+            setModal({ ...modal, open: false })
+            setInfo({ loading: false, message: "Berhasil menyimpan data!", type: "success" })
             router.push("/main/user/list")
         } catch (error) {
             console.log(error);
+            setInfo({ loading: false, message: "Berhasil menyimpan data!", type: "error" })
         }
     }
+
+    const handleDelete = async (e: any) => {
+        e.preventDefault();
+        setInfo({ loading: true })
+        try {
+            const result = await axios.delete(CONFIG.base_url_api + `/user?id=${modal?.data?.id}`, {
+                headers: { "bearer-token": 'kaltengventura2023' }
+            })
+            setModal({ ...modal, open: false })
+            setInfo({ loading: false, message: "Berhasil menghapus data!", type: "success" })
+            router.push('')
+        } catch (error) {
+            console.log(error);
+            setInfo({ loading: false, message: "Gagal menghapus data!", type: "error" })
+        }
+    }
+
+    useEffect(() => {
+        if (info.type) {
+            setTimeout(() => {
+                setInfo({ ...info, type: "", message: "" })
+            }, 3000);
+        }
+    }, [info])
     return (
         <Layout>
             <div className='p-2'>
+                {
+                    info.type ?
+                        <>
+                            <div className={`w-full p-2 rounded-lg ${info.type == "success" ? "bg-green-500" : "bg-red-500"}`} >
+                                <p className='text-white' >{info.message}</p>
+                            </div>
+                        </> : ""
+                }
                 <Input label='' placeholder='Cari Disini...' onChange={(e) => {
                     router.push(`?search=${e.target.value}`)
                 }} />
@@ -121,7 +168,7 @@ export default function list({ table }: { table: any }) {
                     }
                 </div>
                 {
-                    modal.key == "create" ?
+                    modal.key == "create" || modal.key == "update" ?
                         <>
                             <Modal
                                 open={modal.open}
@@ -131,16 +178,48 @@ export default function list({ table }: { table: any }) {
                                 <div>
                                     <h1 className='text-center font-bold text-lg'>{modal.key == "create" ? "Tambah Data Admin" : "Ubah Data Admin"}</h1>
                                     <form onSubmit={handleCreate}>
-                                        <Input label='Email' placeholder='Masukkan Email' name='email' />
+                                        <Input label='Nama' defaultValue={modal?.data?.name} placeholder='Masukkan Nama' name='name' />
+                                        <Input label='No Hp' defaultValue={modal?.data?.phone} placeholder='Masukkan No Hp' name='phone' />
+                                        <Input label='Email' defaultValue={modal?.data?.email} placeholder='Masukkan Email' name='email' />
                                         <Input label='Password' type='password' placeholder='********' name='password' />
+                                        <div className='mt-2'>
+                                            <label htmlFor="status">Status</label>
+                                            <div className='flex gap-4'>
+                                                <div className='flex gap-2'>
+                                                    <input type="radio" id='status' defaultChecked={modal.data.status == 'nonactive'} name='status' value={"nonactive"} />
+                                                    <span>Non Aktif</span>
+                                                </div>
+                                                <div className='flex gap-2'>
+                                                    <input type="radio" id='status' defaultChecked={modal.data.status == 'active'} name='status' value={"active"} />
+                                                    <span>Aktif</span>
+                                                </div>                                         </div>
+                                        </div>
                                         <div className='my-4'>
-                                            <Button type='submit'>Simpan</Button>
+                                            <Button type='submit' disabled={info.loading}>{info.loading ? "Menyimpan..." : "Simpan"}</Button>
                                             <Button type='button' color='white' onClick={() => { setModal({ ...modal, open: false }) }} >Tutup</Button>
                                         </div>
                                     </form>
                                 </div>
                             </Modal>
                         </> : ""
+                }
+                {
+                    modal.key == "delete" ?
+                        <Modal
+                            open={modal.open}
+                            setOpen={() => { setModal({ ...modal, open: false }) }}
+                        >
+                            <div>
+                                <form onSubmit={handleDelete}>
+                                    <h1 className='text-center font-semibold'>Hapus Data Pengguna</h1>
+                                    <p className='mt-5 text-center'>Apakah anda yakin ingin menghapus pengguna {modal.data.name}?</p>
+                                    <div className='my-4'>
+                                        <Button type='submit' color="danger" disabled={info.loading}>{info.loading ? "Menghapus..." : "Hapus"}</Button>
+                                        <Button type='button' color='white' onClick={() => { setModal({ ...modal, open: false }) }} >Tutup</Button>
+                                    </div>
+                                </form>
+                            </div>
+                        </Modal> : ""
                 }
             </div>
         </Layout>

@@ -21,6 +21,7 @@ export default function Login() {
                     text: "Email tidak terdaftar",
                     icon: "warning"
                 })
+                setInfo({ loading: false })
                 return
             }
             const payload = {
@@ -29,7 +30,13 @@ export default function Login() {
             const result = await axios.post(CONFIG.base_url_api + '/user/login', payload, {
                 headers: { 'bearer-token': 'kaltengventura2023' }
             })
-            await localStorage.setItem("uid", payload?.email)
+            const x = result.data.result
+            await localStorage.setItem("uid", JSON.stringify({
+                id: x?.id,
+                name: x?.name,
+                email: x?.email,
+                phone: x?.phone
+            }))
             router.push('/main/dashboard')
             setInfo({ loading: false, message: "Berhasil Login" })
         } catch (error) {
