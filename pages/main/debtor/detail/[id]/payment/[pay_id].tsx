@@ -166,6 +166,7 @@ export default function list({ table, params }: any) {
 
     return (
         <Layout>
+            {/* Header */}
             <div className='p-2'>
                 <div className='flex justify-between'>
                     <h1 className='text-2xl font-bold'>Data Debitur {`>`} Pengajuan Pembiayaan {`>`} Detail Tagihan</h1>
