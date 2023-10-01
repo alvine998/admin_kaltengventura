@@ -92,7 +92,7 @@ export default function list({ table, params }: any) {
             right: false,
             selector: (row: Payment) => <>
                 {
-                    (row?.status == 'unpaid') ?
+                    (row?.status == 'pending') ?
                         <>
                             <button onClick={() => {
                                 setModal({ ...modal, open: true, data: row, key: "view" })
