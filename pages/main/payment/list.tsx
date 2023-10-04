@@ -71,19 +71,19 @@ export default function list({ table }: { table: any }) {
             right: false,
             selector: (row: Payment) => row?.status == "unpaid" ? "Belum Lunas" : row?.status == "paid" ? "Lunas" : "Pending"
         },
-        {
-            name: "Aksi",
-            right: false,
-            selector: (row: Payment) => <>
-                <button className='text-green-500'>
-                    Terima
-                </button>
-                &nbsp;
-                <button className='text-red-500'>
-                    Tolak
-                </button>
-            </>
-        },
+        // {
+        //     name: "Aksi",
+        //     right: false,
+        //     selector: (row: Payment) => <>
+        //         <button className='text-green-500'>
+        //             Terima
+        //         </button>
+        //         &nbsp;
+        //         <button className='text-red-500'>
+        //             Tolak
+        //         </button>
+        //     </>
+        // },
     ]
 
     useEffect(() => {

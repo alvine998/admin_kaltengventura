@@ -16,21 +16,23 @@ import { FaMoneyBillTrendUp, FaMoneyBillTransfer, FaMoneyBillWave, FaUserGroup, 
 
 export async function getServerSideProps(context: any) {
     try {
-        const result = await axios.get(CONFIG.base_url_api + `/payment/list?size=1000`, {
-            headers: {
-                "bearer-token": "kaltengventura2023"
-            }
-        })
-        const result2 = await axios.get(CONFIG.base_url_api + `/debtor/list`, {
-            headers: {
-                "bearer-token": "kaltengventura2023"
-            }
-        })
-        const result3 = await axios.get(CONFIG.base_url_api + `/user/list`, {
-            headers: {
-                "bearer-token": "kaltengventura2023"
-            }
-        })
+        const [result, result2, result3] = await Promise.all([
+            axios.get(CONFIG.base_url_api + `/payment/list?size=100`, {
+                headers: {
+                    "bearer-token": "kaltengventura2023"
+                }
+            }),
+            axios.get(CONFIG.base_url_api + `/debtor/list`, {
+                headers: {
+                    "bearer-token": "kaltengventura2023"
+                }
+            }),
+            axios.get(CONFIG.base_url_api + `/user/list`, {
+                headers: {
+                    "bearer-token": "kaltengventura2023"
+                }
+            })
+        ])
         let count_payment = result.data.items?.reduce((a: any, b: any) => a = a + b.fee, 0)
         let count_payment_fee = result.data.items?.filter((v: any) => v?.status == 'paid')?.reduce((a: any, b: any) => a = a + b.payment_fee, 0)
         let total_debtors = result2.data.total_items
