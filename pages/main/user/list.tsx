@@ -92,7 +92,7 @@ export default function list({ table }: { table: any }) {
         try {
             const payload = {
                 ...formData,
-                id: modal.data.id
+                id: modal?.data?.id
             }
             let result = null
             modal.key == "create" ?
@@ -186,11 +186,11 @@ export default function list({ table }: { table: any }) {
                                             <label htmlFor="status">Status</label>
                                             <div className='flex gap-4'>
                                                 <div className='flex gap-2'>
-                                                    <input type="radio" id='status' defaultChecked={modal.data.status == 'nonactive'} name='status' value={"nonactive"} />
+                                                    <input type="radio" id='status' defaultChecked={modal?.data?.status == 'nonactive'} name='status' value={"nonactive"} />
                                                     <span>Non Aktif</span>
                                                 </div>
                                                 <div className='flex gap-2'>
-                                                    <input type="radio" id='status' defaultChecked={modal.data.status == 'active'} name='status' value={"active"} />
+                                                    <input type="radio" id='status' defaultChecked={modal?.data?.status == 'active'} name='status' value={"active"} />
                                                     <span>Aktif</span>
                                                 </div>                                         </div>
                                         </div>
