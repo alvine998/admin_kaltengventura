@@ -16,34 +16,34 @@ import { FaMoneyBillTrendUp, FaMoneyBillTransfer, FaMoneyBillWave, FaUserGroup, 
 
 export async function getServerSideProps(context: any) {
     try {
-        const [result, result2, result3] = await Promise.all([
-            axios.get(CONFIG.base_url_api + `/payment/list?size=100`, {
-                headers: {
-                    "bearer-token": "kaltengventura2023"
-                }
-            }),
-            axios.get(CONFIG.base_url_api + `/debtor/list`, {
-                headers: {
-                    "bearer-token": "kaltengventura2023"
-                }
-            }),
-            axios.get(CONFIG.base_url_api + `/user/list`, {
-                headers: {
-                    "bearer-token": "kaltengventura2023"
-                }
-            })
-        ])
-        let count_payment = result.data.items?.reduce((a: any, b: any) => a = a + b.fee, 0)
-        let count_payment_fee = result.data.items?.filter((v: any) => v?.status == 'paid')?.reduce((a: any, b: any) => a = a + b.payment_fee, 0)
-        let total_debtors = result2.data.total_items
-        let total_users = result3.data.total_items
+        // const [result, result2, result3] = await Promise.all([
+        //     axios.get(CONFIG.base_url_api + `/payment/list?size=100`, {
+        //         headers: {
+        //             "bearer-token": "kaltengventura2023"
+        //         }
+        //     }),
+        //     axios.get(CONFIG.base_url_api + `/debtor/list`, {
+        //         headers: {
+        //             "bearer-token": "kaltengventura2023"
+        //         }
+        //     }),
+        //     axios.get(CONFIG.base_url_api + `/user/list`, {
+        //         headers: {
+        //             "bearer-token": "kaltengventura2023"
+        //         }
+        //     })
+        // ])
+        // let count_payment = result?.data?.items?.reduce((a: any, b: any) => a = a + b.fee, 0)
+        // let count_payment_fee = result?.data?.items?.filter((v: any) => v?.status == 'paid')?.reduce((a: any, b: any) => a = a + b.payment_fee, 0)
+        // let total_debtors = result2?.data?.total_items
+        // let total_users = result3?.data?.total_items
 
         return {
             props: {
-                count_payment: count_payment,
-                count_payment_fee: count_payment_fee,
-                total_debtors: total_debtors,
-                total_users: total_users
+                // count_payment: count_payment,
+                // count_payment_fee: count_payment_fee,
+                // total_debtors: total_debtors,
+                // total_users: total_users
             }
         }
     } catch (error) {
@@ -61,7 +61,7 @@ export default function list({ count_payment, count_payment_fee, total_debtors, 
                 <div className='bg-green-200 w-full p-10'>
                     <h1 className='text-lg text-green-800'>Selamat Datang di Dashboard Admin KaltengVentura</h1>
                 </div>
-                <div className='flex gap-2'>
+                {/* <div className='flex gap-2'>
                     <div className='bg-green-200 w-1/4 p-10 mt-10'>
                         <FaMoneyBillWave className={'text-2xl text-green-800'} />
                         <h1 className='text-lg text-green-800'>Total Dana Keluar : {formatToIDRCurrency(count_payment)}</h1>
@@ -84,7 +84,7 @@ export default function list({ count_payment, count_payment_fee, total_debtors, 
                         <FaUsers className={'text-2xl text-green-800'} />
                         <h1 className='text-lg text-green-800'>Total Pengguna : {total_users}</h1>
                     </div>
-                </div>
+                </div> */}
             </div>
         </Layout>
     )
