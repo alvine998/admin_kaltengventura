@@ -15,7 +15,7 @@ import { FaCheck, FaPencil, FaTrash, FaX } from 'react-icons/fa6'
 export async function getServerSideProps(context: any) {
     const { search, page, size } = context.query;
     try {
-        const result = await axios.get(CONFIG.base_url_api + `/debtor/list?search=${search || ""}`, {
+        const result = await axios.get(CONFIG.base_url_api + `/debtor/list?search=${search || ""}&page=${page || 1}&size=${size}`, {
             headers: {
                 "bearer-token": "kaltengventura2023"
             }
@@ -30,7 +30,7 @@ export async function getServerSideProps(context: any) {
     }
 }
 
-export default function list({ table }: any) {
+export default function List({ table }: any) {
     const [info, setInfo] = useState<any>({ loading: false, message: "" })
     const [modal, setModal] = useModal<any>()
     const router = useRouter();
@@ -211,12 +211,12 @@ export default function list({ table }: any) {
                                 striped={true}
                                 expandableRows
                                 expandableRowsComponent={ExpandedComponent}
-                                // onChangePage={(pageData) => {
-                                //     router.push('?page=' + pageData)
-                                // }}
-                                // onChangeRowsPerPage={(currentRowsPerPage, currentPage) => {
-                                //     router.push(`?page=${currentPage}&size=${currentRowsPerPage}`)
-                                // }}
+                                onChangePage={(pageData) => {
+                                    router.push('?page=' + pageData)
+                                }}
+                                onChangeRowsPerPage={(currentRowsPerPage, currentPage) => {
+                                    router.push(`?page=${currentPage}&size=${currentRowsPerPage}`)
+                                }}
                                 responsive={true}
                                 highlightOnHover
                                 pointerOnHover

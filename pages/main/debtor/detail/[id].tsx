@@ -37,7 +37,7 @@ export async function getServerSideProps(context: any) {
     }
 }
 
-export default function list({ table, params }: any) {
+export default function List({ table, params }: any) {
     const [info, setInfo] = useState<any>({ loading: false, message: "" })
     const [modal, setModal] = useModal<any>()
     const router = useRouter();
