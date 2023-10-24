@@ -144,8 +144,8 @@ export default function List({ table, params }: any) {
                     admin_name: formData?.admin_name,
                     verificated_on: new Date().toISOString(),
                 },
-                payment_fee: modal.data.fee,
-                payment_date: new Date().toISOString()
+                // payment_fee: modal.data.fee,
+                // // payment_date: new Date().toISOString()
             }
             const result = await axios.patch(CONFIG.base_url_api + `/payment`, payload, {
                 headers: { "bearer-token": 'kaltengventura2023' }
@@ -216,9 +216,9 @@ export default function List({ table, params }: any) {
                                                     <img src={modal.data.photo} className='w-full h-[300px]' alt='bukti-bayar' />
                                                 </> : <p className='text-center my-5'>Tidak ada bukti upload</p>
                                         }
-                                        <Input label='Nama Bank' placeholder='Masukkan Nama Bank' name='bank_name' required />
+                                        {/* <Input label='Nama Bank' placeholder='Masukkan Nama Bank' name='bank_name' required />
                                         <Input label='Nama Pemilik Rekening' placeholder='Masukkan Nama Pemilik Rekening' name='account_name' required />
-                                        <Input label='No Rekening' type='number' placeholder='Masukkan No Rekening' name='account_number' required />
+                                        <Input label='No Rekening' type='number' placeholder='Masukkan No Rekening' name='account_number' required /> */}
                                         <div className='my-4'>
                                             <Button type='submit' disabled={info.loading}>{info.loading ? "Menyimpan..." : "Simpan"}</Button>
                                             <Button type='button' color='white' onClick={() => { setModal({ ...modal, open: false }) }} >Tutup</Button>
