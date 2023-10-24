@@ -52,7 +52,7 @@ export default function list({ table }: { table: any }) {
         {
             name: "Foto",
             right: false,
-            selector: (row: User) => row.photo ? <img src={row.photo} className='w-6 h-10' /> : "-"
+            selector: (row: User) => row.photo ? <a href={row.photo} target='_blank'><img src={row.photo} className='w-10' /></a> : "-"
         },
         {
             name: "Status",

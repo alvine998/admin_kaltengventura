@@ -65,12 +65,17 @@ export default function list({ table }: any) {
         {
             name: "KK",
             right: false,
-            selector: (row: Debtor) => row.kk ? <img src={row.kk} className='w-10 h-6' /> : "-"
+            selector: (row: Debtor) => row.kk ? <a href={row.ktp} target='_blank'><img src={row.kk} className='w-10' /></a> : "-"
         },
         {
             name: "KTP",
             right: false,
-            selector: (row: Debtor) => row.ktp ? <img src={row.ktp} className='w-10 h-6' /> : "-"
+            selector: (row: Debtor) => row.ktp ? <a href={row.ktp} target='_blank'><img src={row.ktp} className='w-10' /></a> : "-"
+        },
+        {
+            name: "KTP Suami/Istri",
+            right: false,
+            selector: (row: Debtor) => row.partner_ktp ? <a href={row.partner_ktp} target='_blank'><img src={row.partner_ktp} className='w-10' /></a> : "-"
         },
         {
             name: "Status",

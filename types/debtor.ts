@@ -8,6 +8,7 @@ export interface Debtor {
     other_loan_name: string;
     mother_name:     string;
     ktp:             string;
+    partner_ktp:     string;
     kk:              string;
     status:          string;
     user_id:     number;
