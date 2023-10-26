@@ -14,6 +14,7 @@ import { formatDateToIndonesian, formatToIDRCurrency } from '@/utils'
 import { Application } from '@/types/application'
 import { FaCheck, FaX } from 'react-icons/fa6'
 import { RxDoubleArrowRight } from 'react-icons/rx'
+import Swal from 'sweetalert2'
 
 export async function getServerSideProps(context: any) {
     const { search, page, size } = context.query;
@@ -29,7 +30,8 @@ export async function getServerSideProps(context: any) {
                 table: result.data || [],
                 params: {
                     id: id
-                }
+                },
+                query: context.query
             }
         }
     } catch (error) {
@@ -37,12 +39,15 @@ export async function getServerSideProps(context: any) {
     }
 }
 
-export default function List({ table, params }: any) {
+export default function List({ table, params, query }: any) {
     const [info, setInfo] = useState<any>({ loading: false, message: "" })
     const [modal, setModal] = useModal<any>()
     const router = useRouter();
     const [show, setShow] = useState<boolean>(false)
     const [admin, setAdmin] = useState<any>()
+    const [payloads, setPayloads] = useState<any>({
+        
+    })
     const columns: any = [
         {
             name: "No Kontrak",
@@ -169,6 +174,39 @@ export default function List({ table, params }: any) {
             </div>
         )
     }
+    const save = async (e: any) => {
+        e.preventDefault();
+        setInfo({ loading: true })
+        const formData: any = Object.fromEntries(new FormData(e.target))
+        try {
+            const payload = {
+                ...formData,
+                user_id: query?.user_id,
+                user_name: query?.user_name,
+                admin: {
+                    id: formData?.admin_id,
+                    name: formData?.admin_name,
+                    date: new Date().toISOString(),
+                }
+            }
+            if (modal.key == "create") {
+                const result = await axios.post(CONFIG.base_url_api + `/debtor`, payload, {
+                    headers: { "bearer-token": 'kaltengventura2023' }
+                })
+            } else {
+                const result = await axios.patch(CONFIG.base_url_api + `/debtor`, payload, {
+                    headers: { "bearer-token": 'kaltengventura2023' }
+                })
+            }
+            Swal.fire({ icon: "success", text: "Berhasil menyimpan data" })
+            setInfo({ loading: false, message: "Berhasil verifikasi", type: "success" })
+            setModal({ ...modal, open: false })
+            router.push("")
+        } catch (error) {
+            console.log(error);
+            setInfo({ loading: false, message: "Gagal verifikasi", type: "error" })
+        }
+    }
     return (
         <Layout>
             <div className='p-2'>
@@ -186,6 +224,9 @@ export default function List({ table, params }: any) {
                         <Button color='primary' onClick={() => { router.push('/main/debtor/list') }} >Kembali</Button>
                     </div>
                 </div>
+                <Button type='button' onClick={() => {
+                    setModal({ ...modal, open: true, key: "create", data: null })
+                }}>Tambah Data</Button>
                 <Input label='' placeholder='Cari Disini...' onChange={(e) => {
                     router.push(`?search=${e.target.value}`)
                 }} />
@@ -214,6 +255,48 @@ export default function List({ table, params }: any) {
                             /> : ""
                     }
                 </div>
+                {
+                    modal.key == "create" || modal.key == "update" ?
+                        <>
+                            <Modal
+                                open={modal.open}
+                                setOpen={() => setModal({ ...modal, open: false })}
+
+                            >
+                                <div>
+                                    <h1 className='text-center font-bold text-lg'>{modal.key == 'create' ? "Tambah Data Debitur" : "Ubah Data Debitur"}</h1>
+                                    <form onSubmit={save}>
+                                        <input type="text" className='hidden' value={admin?.id} name='admin_id' />
+                                        <input type="text" className='hidden' value={modal?.data?.id} name='id' />
+                                        <input type="text" className='hidden' value={admin?.name} name='admin_name' />
+                                        <Input label='No Kontrak' placeholder='Masukkan No Kontrak' name='contract_no' required defaultValue={modal?.data?.contract_no || ""} type='number' />
+                                        <Input label='Jumlah Pinjaman' placeholder='Masukkan Jumlah Pinjaman' name='loan' required defaultValue={modal?.data?.loan || ""} type='number' />
+                                        <div className='flex md:flex-row flex-col gap-2'>
+                                            <Input label='Durasi Pinjaman (Tahun)' placeholder='Masukkan Durasi Pinjaman (Tahun)' name='year' required defaultValue={modal?.data?.year || ""} type='number' />
+                                            <Input label='Cicilan per Bulan' readOnly placeholder='Masukkan Cicilan per Bulan' name='installment' required defaultValue={modal?.data?.installment || ""} type='number' />
+                                        </div>
+                                        <div className='mt-2'>
+                                            <label htmlFor="other_loan">Memiliki pinjaman lain?</label>
+                                            <div className='flex gap-4'>
+                                                <div className='flex gap-2'>
+                                                    <input type="radio" id='other_loan' defaultChecked={modal?.data?.other_loan == '0' || true} name='other_loan' value={"0"} />
+                                                    <span>Disetujui</span>
+                                                </div>
+                                                <div className='flex gap-2'>
+                                                    <input type="radio" id='other_loan' defaultChecked={modal?.data?.other_loan == '1'} name='other_loan' value={"1"} />
+                                                    <span>Lunas</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div className='my-4'>
+                                            <Button type='submit' disabled={info.loading}>{info.loading ? "Menyimpan..." : "Simpan"}</Button>
+                                            <Button type='button' color='white' onClick={() => { setModal({ ...modal, open: false }) }} >Tutup</Button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </Modal>
+                        </> : ""
+                }
                 {
                     modal.key == "approved" || modal.key == "rejected" ?
                         <>

@@ -11,16 +11,16 @@ import { CONFIG } from '@/config'
 import { User } from '@/types/user'
 
 export async function getServerSideProps(context: any) {
-    const { search } = context.query;
+    const { search, page, size } = context.query;
     try {
-        const result = await axios.get(CONFIG.base_url_api + '/user/list?search=' + (search || ""), {
+        const result = await axios.get(CONFIG.base_url_api + `/user/list?pagination=true&search=${search || ""}&page=${page - 1}&size=${size || 10}`, {
             headers: {
                 "bearer-token": "kaltengventura2023"
             }
         })
         return {
             props: {
-                table: result.data.items || []
+                table: result.data || []
             }
         }
     } catch (error) {
@@ -144,22 +144,28 @@ export default function List({ table }: { table: any }) {
                             </div>
                         </> : ""
                 }
-                <Input label='' placeholder='Cari Disini...' onChange={(e) => {
-                    router.push(`?search=${e.target.value}`)
-                }} />
                 <Button type='button' onClick={() => {
                     setModal({ ...modal, open: true, key: "create", data: null })
                 }}>Tambah Data</Button>
+                <Input label='' placeholder='Cari Disini...' onChange={(e) => {
+                    router.push(`?search=${e.target.value}`)
+                }} />
                 <div>
                     {
                         show ?
                             <DataTable
                                 columns={columns}
-                                data={table}
-                                paginationTotalRows={table.length}
+                                data={table?.items}
+                                paginationTotalRows={table?.total_items}
                                 pagination={true}
                                 paginationServer={true}
                                 paginationDefaultPage={1}
+                                onChangePage={(pageData) => {
+                                    router.push('?page=' + pageData)
+                                }}
+                                onChangeRowsPerPage={(currentRowsPerPage, currentPage) => {
+                                    router.push(`?page=${currentPage}&size=${currentRowsPerPage}`)
+                                }}
                                 striped={true}
                                 responsive={true}
                                 highlightOnHover
