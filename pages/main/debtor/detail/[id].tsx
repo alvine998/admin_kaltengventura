@@ -31,7 +31,6 @@ export async function getServerSideProps(context: any) {
                 params: {
                     id: id
                 },
-                query: context.query
             }
         }
     } catch (error) {
@@ -39,14 +38,17 @@ export async function getServerSideProps(context: any) {
     }
 }
 
-export default function List({ table, params, query }: any) {
+export default function List({ table, params }: any) {
     const [info, setInfo] = useState<any>({ loading: false, message: "" })
     const [modal, setModal] = useModal<any>()
     const router = useRouter();
     const [show, setShow] = useState<boolean>(false)
     const [admin, setAdmin] = useState<any>()
+    const [query, setQuery] = useState<any>()
     const [payloads, setPayloads] = useState<any>({
-        
+        loan: 0,
+        installment: 0,
+        year: 0
     })
     const columns: any = [
         {
@@ -116,7 +118,9 @@ export default function List({ table, params, query }: any) {
 
     const getAdmin = async () => {
         const result = await localStorage.getItem("uid")
+        const result2: any = await localStorage.getItem("from")
         setAdmin(JSON.parse(result!))
+        setQuery(JSON.parse(result2))
     }
 
     useEffect(() => {
@@ -183,25 +187,34 @@ export default function List({ table, params, query }: any) {
                 ...formData,
                 user_id: query?.user_id,
                 user_name: query?.user_name,
+                user_from: query?.user_from,
+                installment: +payloads?.installment?.toFixed(0),
+                approved_by: {
+                    admin_id: formData?.admin_id,
+                    admin_name: formData?.admin_name,
+                    verificated_on: new Date().toISOString(),
+                    from: "admin"
+                },
                 admin: {
                     id: formData?.admin_id,
                     name: formData?.admin_name,
                     date: new Date().toISOString(),
+                    from: "admin"
                 }
             }
             if (modal.key == "create") {
-                const result = await axios.post(CONFIG.base_url_api + `/debtor`, payload, {
+                const result = await axios.post(CONFIG.base_url_api + `/application`, payload, {
                     headers: { "bearer-token": 'kaltengventura2023' }
                 })
             } else {
-                const result = await axios.patch(CONFIG.base_url_api + `/debtor`, payload, {
+                const result = await axios.patch(CONFIG.base_url_api + `/application`, payload, {
                     headers: { "bearer-token": 'kaltengventura2023' }
                 })
             }
             Swal.fire({ icon: "success", text: "Berhasil menyimpan data" })
             setInfo({ loading: false, message: "Berhasil verifikasi", type: "success" })
             setModal({ ...modal, open: false })
-            router.push("")
+            router.push(`/main/debtor/detail/${params?.id}?user_id=${query?.user_id}&user_name=${query?.user_name}&user_from=${query?.user_from}`)
         } catch (error) {
             console.log(error);
             setInfo({ loading: false, message: "Gagal verifikasi", type: "error" })
@@ -221,7 +234,7 @@ export default function List({ table, params, query }: any) {
                 <div className='flex justify-between'>
                     <h1 className='text-2xl font-bold'>Data Debitur {`>`} Pengajuan Pembiayaan</h1>
                     <div>
-                        <Button color='primary' onClick={() => { router.push('/main/debtor/list') }} >Kembali</Button>
+                        <Button color='primary' onClick={() => { router.push('/main/debtor/list'); localStorage.removeItem("from");}} >Kembali</Button>
                     </div>
                 </div>
                 <Button type='button' onClick={() => {
@@ -270,20 +283,21 @@ export default function List({ table, params, query }: any) {
                                         <input type="text" className='hidden' value={modal?.data?.id} name='id' />
                                         <input type="text" className='hidden' value={admin?.name} name='admin_name' />
                                         <Input label='No Kontrak' placeholder='Masukkan No Kontrak' name='contract_no' required defaultValue={modal?.data?.contract_no || ""} type='number' />
-                                        <Input label='Jumlah Pinjaman' placeholder='Masukkan Jumlah Pinjaman' name='loan' required defaultValue={modal?.data?.loan || ""} type='number' />
+                                        <Input label='Jumlah Pinjaman' placeholder='Masukkan Jumlah Pinjaman' name='loan' required value={modal?.data?.loan || payloads?.loan} onChange={(e) => { setPayloads({ ...payloads, loan: +e.target.value, installment: +e.target.value / (payloads?.year * 12) }) }} type='text' />
+                                        <Input label='Tanggal Mulai Pinjaman' name='start_date' required defaultValue={modal?.data?.start_date || ""} type='date' />
                                         <div className='flex md:flex-row flex-col gap-2'>
-                                            <Input label='Durasi Pinjaman (Tahun)' placeholder='Masukkan Durasi Pinjaman (Tahun)' name='year' required defaultValue={modal?.data?.year || ""} type='number' />
-                                            <Input label='Cicilan per Bulan' readOnly placeholder='Masukkan Cicilan per Bulan' name='installment' required defaultValue={modal?.data?.installment || ""} type='number' />
+                                            <Input label='Durasi Pinjaman (Tahun)' placeholder='Masukkan Durasi Pinjaman (Tahun)' name='year' required value={modal?.data?.year || payloads?.year} onChange={(e) => { setPayloads({ ...payloads, year: +e.target.value, installment: payloads?.loan / (+e.target.value * 12) }) }} type='text' />
+                                            <Input label='Cicilan per Bulan' readOnly placeholder='Masukkan Cicilan per Bulan' name='installment' required value={formatToIDRCurrency(modal?.data?.installment || payloads?.installment)} type='text' />
                                         </div>
                                         <div className='mt-2'>
-                                            <label htmlFor="other_loan">Memiliki pinjaman lain?</label>
+                                            <label htmlFor="status">Status</label>
                                             <div className='flex gap-4'>
                                                 <div className='flex gap-2'>
-                                                    <input type="radio" id='other_loan' defaultChecked={modal?.data?.other_loan == '0' || true} name='other_loan' value={"0"} />
+                                                    <input type="radio" id='status' defaultChecked={modal?.data?.status == '0' || true} name='status' value={"approved"} />
                                                     <span>Disetujui</span>
                                                 </div>
                                                 <div className='flex gap-2'>
-                                                    <input type="radio" id='other_loan' defaultChecked={modal?.data?.other_loan == '1'} name='other_loan' value={"1"} />
+                                                    <input type="radio" id='status' defaultChecked={modal?.data?.status == '1'} name='status' value={"done"} />
                                                     <span>Lunas</span>
                                                 </div>
                                             </div>

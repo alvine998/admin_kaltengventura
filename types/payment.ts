@@ -15,9 +15,16 @@ export interface Payment {
     account_name:         null;
     photo:                null;
     status:               string;
-    approved_by:          null;
+    approved_by:          Approved;
     notes:                null;
     created_on:           Date;
     updated_on:           null;
     deleted:              number;
+}
+
+export interface Approved {
+    admin_id: number;
+    admin_name: string;
+    date: string,
+    from: string;
 }

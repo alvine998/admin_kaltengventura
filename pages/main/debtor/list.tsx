@@ -139,7 +139,8 @@ export default function List({ table, users }: any) {
                 {
                     row?.status == 'approved' &&
                     <button onClick={() => {
-                        router.push(`detail/${row?.user_id}?user_id=${row?.user_id}&user_name=${row?.user_name}`)
+                        router.push(`detail/${row?.user_id}`)
+                        localStorage.setItem("from", JSON.stringify({ user_id: row?.user_id, user_name: row?.user_name, user_from: users?.find((v: any) => v?.id == row?.user_id)?.from }))
                     }}>
                         <RxDoubleArrowRight className='text-green-500 hover:green-blue-600 duration-300 transition text-[20px]' />
                     </button>

@@ -14,6 +14,7 @@ import { formatDateToIndonesian, formatToIDRCurrency } from '@/utils'
 import { Application } from '@/types/application'
 import { FaCheck, FaX } from 'react-icons/fa6'
 import { RxDoubleArrowRight } from 'react-icons/rx'
+import moment from 'moment'
 
 export async function getServerSideProps(context: any) {
     const { search, page, size } = context.query;
@@ -44,6 +45,7 @@ export default function List({ table, params }: any) {
     const router = useRouter();
     const [show, setShow] = useState<boolean>(false)
     const [admin, setAdmin] = useState<any>()
+    const [query, setQuery] = useState<any>()
 
     const columns: any = [
         {
@@ -64,7 +66,7 @@ export default function List({ table, params }: any) {
         {
             name: "Tanggal Pembayaran",
             right: false,
-            selector: (row: Payment) => row?.payment_date ? formatDateToIndonesian(row?.payment_date) : "-"
+            selector: (row: Payment) => row?.payment_date ? moment(row?.payment_date)?.format("DD-MM-YYYY HH:mm") : "-"
         },
         {
             name: "Bank",
@@ -94,14 +96,26 @@ export default function List({ table, params }: any) {
                             }}>
                                 <FaCheck className='text-blue-500 hover:text-blue-600 duration-300 transition text-[20px]' />
                             </button>
-                        </> : "-"
+                        </> : ""
+                }
+                {
+                    row?.status == 'unpaid' && query?.user_from == "admin" ?
+                        <>
+                            <button onClick={() => {
+                                setModal({ ...modal, open: true, data: row, key: "view" })
+                            }}>
+                                <FaCheck className='text-blue-500 hover:text-blue-600 duration-300 transition text-[20px]' />
+                            </button>
+                        </> : ""
                 }
             </>
         },
     ]
     const getAdmin = async () => {
         const result = await localStorage.getItem("uid")
+        const result2: any = await localStorage.getItem("from")
         setAdmin(JSON.parse(result!))
+        setQuery(JSON.parse(result2))
     }
 
     useEffect(() => {
@@ -143,9 +157,10 @@ export default function List({ table, params }: any) {
                     admin_id: formData?.admin_id,
                     admin_name: formData?.admin_name,
                     verificated_on: new Date().toISOString(),
+                    user_from: query?.user_from
                 },
-                // payment_fee: modal.data.fee,
-                // // payment_date: new Date().toISOString()
+                payment_fee: modal.data.fee,
+                payment_date: query?.user_from == "apps" ? new Date().toISOString() : formData?.date
             }
             const result = await axios.patch(CONFIG.base_url_api + `/payment`, payload, {
                 headers: { "bearer-token": 'kaltengventura2023' }
@@ -217,8 +232,11 @@ export default function List({ table, params }: any) {
                                                 </> : <p className='text-center my-5'>Tidak ada bukti upload</p>
                                         }
                                         {/* <Input label='Nama Bank' placeholder='Masukkan Nama Bank' name='bank_name' required />
-                                        <Input label='Nama Pemilik Rekening' placeholder='Masukkan Nama Pemilik Rekening' name='account_name' required />
-                                        <Input label='No Rekening' type='number' placeholder='Masukkan No Rekening' name='account_number' required /> */}
+                                        <Input label='Nama Pemilik Rekening' placeholder='Masukkan Nama Pemilik Rekening' name='account_name' required /> */}
+                                        {
+                                            query?.user_from == "admin" && 
+                                            <Input label='Tanggal Bayar' type='datetime-local' name='date' required />
+                                        }
                                         <div className='my-4'>
                                             <Button type='submit' disabled={info.loading}>{info.loading ? "Menyimpan..." : "Simpan"}</Button>
                                             <Button type='button' color='white' onClick={() => { setModal({ ...modal, open: false }) }} >Tutup</Button>
