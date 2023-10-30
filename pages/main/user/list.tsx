@@ -92,7 +92,8 @@ export default function List({ table }: { table: any }) {
         try {
             const payload = {
                 ...formData,
-                id: modal?.data?.id
+                id: modal?.data?.id,
+                from: "admin"
             }
             let result = null
             modal.key == "create" ?
