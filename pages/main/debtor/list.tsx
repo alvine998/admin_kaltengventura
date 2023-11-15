@@ -224,12 +224,11 @@ export default function List({ table, users }: any) {
                 })
             }
             Swal.fire({ icon: "success", text: "Berhasil menyimpan data" })
-            setInfo({ loading: false, message: "Berhasil verifikasi", type: "success" })
             setModal({ ...modal, open: false })
             router.push("")
         } catch (error) {
             console.log(error);
-            setInfo({ loading: false, message: "Gagal verifikasi", type: "error" })
+            Swal.fire({ icon: "error", text: "Gagal menyimpan data" })
         }
     }
     const ExpandedComponent: React.FC<ExpanderComponentProps<any>> = ({ data }) => {
