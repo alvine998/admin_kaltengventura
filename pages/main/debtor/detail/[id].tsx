@@ -74,7 +74,7 @@ export default function List({ table, params }: any) {
         {
             name: "Status",
             right: false,
-            selector: (row: Application) => row?.status == "rejected" ? "Tidak Lolos" : row?.status == "approved" ? "Lolos" : "Menunggu"
+            selector: (row: Application) => row?.status == "rejected" ? "Tidak Lolos" : row?.status == "approved" ? "Lolos" : row?.status == "done" ? "Selesai" : "Menunggu"
         },
         {
             name: "Aksi",
@@ -105,7 +105,7 @@ export default function List({ table, params }: any) {
                     </>
                 }
                 {
-                    (row?.status == 'approved') &&
+                    (row?.status == 'approved' || row?.status == 'done') &&
                     <button onClick={() => {
                         router.push(`/main/debtor/detail/${params.id}/payment/${row?.id}`)
                     }}>
@@ -188,7 +188,6 @@ export default function List({ table, params }: any) {
                 user_id: query?.user_id,
                 user_name: query?.user_name,
                 user_from: query?.user_from,
-                installment: +payloads?.installment?.toFixed(0),
                 approved_by: {
                     admin_id: formData?.admin_id,
                     admin_name: formData?.admin_name,
@@ -214,7 +213,7 @@ export default function List({ table, params }: any) {
             Swal.fire({ icon: "success", text: "Berhasil menyimpan data" })
             setInfo({ loading: false, message: "Berhasil verifikasi", type: "success" })
             setModal({ ...modal, open: false })
-            router.push(`/main/debtor/detail/${params?.id}?user_id=${query?.user_id}&user_name=${query?.user_name}&user_from=${query?.user_from}`)
+            router.push(`/main/debtor/detail/${params?.id}`)
         } catch (error) {
             console.log(error);
             setInfo({ loading: false, message: "Gagal verifikasi", type: "error" })
@@ -234,7 +233,7 @@ export default function List({ table, params }: any) {
                 <div className='flex justify-between'>
                     <h1 className='text-2xl font-bold'>Data Debitur {`>`} Pengajuan Pembiayaan</h1>
                     <div>
-                        <Button color='primary' onClick={() => { router.push('/main/debtor/list'); localStorage.removeItem("from");}} >Kembali</Button>
+                        <Button color='primary' onClick={() => { router.push('/main/debtor/list'); localStorage.removeItem("from"); }} >Kembali</Button>
                     </div>
                 </div>
                 <Button type='button' onClick={() => {
@@ -283,11 +282,11 @@ export default function List({ table, params }: any) {
                                         <input type="text" className='hidden' value={modal?.data?.id} name='id' />
                                         <input type="text" className='hidden' value={admin?.name} name='admin_name' />
                                         <Input label='No Kontrak' placeholder='Masukkan No Kontrak' name='contract_no' required defaultValue={modal?.data?.contract_no || ""} type='number' />
-                                        <Input label='Jumlah Pinjaman' placeholder='Masukkan Jumlah Pinjaman' name='loan' required value={modal?.data?.loan || payloads?.loan} onChange={(e) => { setPayloads({ ...payloads, loan: +e.target.value, installment: +e.target.value / (payloads?.year * 12) }) }} type='text' />
+                                        <Input label='Jumlah Pinjaman' placeholder='Masukkan Jumlah Pinjaman' name='loan' required value={modal?.data?.loan || payloads?.loan} onChange={(e) => { setPayloads({ ...payloads, loan: +e.target.value }) }} type='text' />
                                         <Input label='Tanggal Mulai Pinjaman' name='start_date' required defaultValue={modal?.data?.start_date || ""} type='date' />
                                         <div className='flex md:flex-row flex-col gap-2'>
-                                            <Input label='Durasi Pinjaman (Tahun)' placeholder='Masukkan Durasi Pinjaman (Tahun)' name='year' required value={modal?.data?.year || payloads?.year} onChange={(e) => { setPayloads({ ...payloads, year: +e.target.value, installment: payloads?.loan / (+e.target.value * 12) }) }} type='text' />
-                                            <Input label='Cicilan per Bulan' readOnly placeholder='Masukkan Cicilan per Bulan' name='installment' required value={formatToIDRCurrency(modal?.data?.installment || payloads?.installment)} type='text' />
+                                            <Input label='Durasi Pinjaman (Tahun)' placeholder='Masukkan Durasi Pinjaman (Tahun)' name='year' required value={modal?.data?.year || payloads?.year} onChange={(e) => { setPayloads({ ...payloads, year: +e.target.value }) }} type='text' />
+                                            <Input label='Cicilan per Bulan' placeholder='Masukkan Cicilan per Bulan' name='installment' required value={modal?.data?.installment || payloads?.installment} type='text' onChange={(e) => setPayloads({...payloads, installment: +e.target.value})} />
                                         </div>
                                         <div className='mt-2'>
                                             <label htmlFor="status">Status</label>
