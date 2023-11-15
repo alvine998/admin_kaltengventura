@@ -203,7 +203,6 @@ export default function List({ table, users }: any) {
             const payload = {
                 ...formData,
                 status: 'approved',
-                from: "admin",
                 user_name: users?.find((v: any) => v?.id == formData?.user_id)?.name,
                 approved_by: {
                     admin_id: formData?.admin_id,
