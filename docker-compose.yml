@@ -2,6 +2,9 @@ version: '3.8'
 services:
   app:
     image: admin_kaltengventura-web
+    front:
+      networks:
+        - admin_web
     build:
       context: ./
       target: dev
@@ -12,3 +15,7 @@ services:
         - /app/.next
     ports:
       - "3000:3000"
+
+networks:
+  admin_web:
+    driver: bridge
