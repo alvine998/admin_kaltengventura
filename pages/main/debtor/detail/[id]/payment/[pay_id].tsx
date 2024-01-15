@@ -20,7 +20,7 @@ export async function getServerSideProps(context: any) {
     const { search, page, size } = context.query;
     const { pay_id, id } = context.params
     try {
-        const result = await axios.get(CONFIG.base_url_api + `/payment/list?search=${(search || "")}&application_id=${pay_id || ""}&page=${page || 1}&size=${size || 10}`, {
+        const result = await axios.get(CONFIG.base_url_api + `/payment/list?search=${(search || "")}&application_id=${pay_id || ""}&page=${+page > 0 ? +page : +page - 1}&size=${size || 10}`, {
             headers: {
                 "bearer-token": "kaltengventura2023"
             }

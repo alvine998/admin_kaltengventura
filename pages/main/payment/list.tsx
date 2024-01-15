@@ -15,7 +15,7 @@ import { formatDateToIndonesian, formatToIDRCurrency } from '@/utils'
 export async function getServerSideProps(context: any) {
     const { search, page, size } = context.query;
     try {
-        const result = await axios.get(CONFIG.base_url_api + `/payment/list?search=${(search || "")}&page=${page || 1}&size=${size}&status=paid`, {
+        const result = await axios.get(CONFIG.base_url_api + `/payment/list?search=${(search || "")}&page=${+page > 0 ? +page : +page - 1}&size=${+size || 10}&status=paid`, {
             headers: {
                 "bearer-token": "kaltengventura2023"
             }
