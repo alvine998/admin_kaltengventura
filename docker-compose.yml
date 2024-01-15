@@ -3,7 +3,7 @@ services:
   app:
     image: admin_kaltengventura-web
     networks:
-      - my-proxy-net
+      - custom_network
     build:
       context: ./
       target: dev
@@ -16,5 +16,5 @@ services:
       - "3000:3000"
 
 networks:
-  my-proxy-net:
+  custom_network:
     external: true
