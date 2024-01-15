@@ -13,7 +13,7 @@ import { User } from '@/types/user'
 export async function getServerSideProps(context: any) {
     const { search, page, size } = context.query;
     try {
-        const result = await axios.get(CONFIG.base_url_api + `/user/list?pagination=true&search=${search || ""}&page=${+page > 0 ? +page : +page - 1}&size=${+size || 10}`, {
+        const result = await axios.get(CONFIG.base_url_api + `/user/list?pagination=true&search=${search || ""}&page=${1}&size=${+size || 10}`, {
             headers: {
                 "bearer-token": "kaltengventura2023"
             }
