@@ -14,10 +14,6 @@ services:
         - /app/.next
     ports:
       - "3000:3000"
-  api:
-    image: api-kaltengventura-api
-    networks:
-      - custom_network
 
 networks:
   custom_network:
