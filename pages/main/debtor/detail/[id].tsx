@@ -215,6 +215,7 @@ export default function List({ table, params }: any) {
             setModal({ ...modal, open: false })
             router.push(`/main/debtor/detail/${params?.id}`)
         } catch (error) {
+            setInfo({ loading: false })
             console.log(error);
             setInfo({ loading: false, message: "Gagal verifikasi", type: "error" })
         }

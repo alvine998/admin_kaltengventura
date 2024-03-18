@@ -222,10 +222,12 @@ export default function List({ table, users }: any) {
                     headers: { "bearer-token": 'kaltengventura2023' }
                 })
             }
+            setInfo({ loading: false })
             Swal.fire({ icon: "success", text: "Berhasil menyimpan data" })
             setModal({ ...modal, open: false })
             router.push("")
         } catch (error) {
+            setInfo({ loading: false })
             console.log(error);
             Swal.fire({ icon: "error", text: "Gagal menyimpan data" })
         }
