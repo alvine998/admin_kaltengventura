@@ -360,7 +360,7 @@ export default function List({ table, users }: any) {
                                         }
 
                                         <div className='flex md:flex-row flex-col gap-2 items-center my-2'>
-                                            <Input label='KTP' name='ktp' required type='file' onChange={(e: any) => {
+                                            <Input label='KTP' name='ktp' required type='file' accept='image/*' onChange={(e: any) => {
                                                 const file = e.target.files[0]
                                                 const reader = new FileReader();
                                                 reader.onload = () => {
@@ -375,7 +375,7 @@ export default function List({ table, users }: any) {
                                             }
                                         </div>
                                         <div className='flex md:flex-row flex-col gap-2 items-center my-2'>
-                                            <Input label='Kartu Keluarga' name='kk' required type='file' onChange={(e: any) => {
+                                            <Input label='Kartu Keluarga' name='kk' accept='image/*' required type='file' onChange={(e: any) => {
                                                 const file = e.target.files[0]
                                                 const reader = new FileReader();
                                                 reader.onload = () => {
@@ -390,7 +390,7 @@ export default function List({ table, users }: any) {
                                             }
                                         </div>
                                         <div className='flex md:flex-row flex-col gap-2 items-center my-2'>
-                                            <Input label='KTP Suami / Istri' name='partner_ktp' type='file' onChange={(e: any) => {
+                                            <Input label='KTP Suami / Istri' name='partner_ktp' accept='image/*' type='file' onChange={(e: any) => {
                                                 const file = e.target.files[0]
                                                 const reader = new FileReader();
                                                 reader.onload = () => {
