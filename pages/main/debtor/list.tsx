@@ -81,17 +81,17 @@ export default function List({ table, users }: any) {
         {
             name: "KK",
             right: false,
-            selector: (row: Debtor) => row.kk ? <a href={row.kk} target='_blank'><img src={row.kk} className='w-10' /></a> : "-"
+            selector: (row: Debtor) => row.kk ? <a href={row.kk} target='_blank'><img src={JSON.parse(row.kk)} className='w-10 h-10' /></a> : "-"
         },
         {
             name: "KTP",
             right: false,
-            selector: (row: Debtor) => row.ktp ? <a href={row.ktp} target='_blank'><img src={row.ktp} className='w-10' /></a> : "-"
+            selector: (row: Debtor) => row.ktp ? <a href={row.ktp} target='_blank'><img src={JSON.parse(row.ktp)} className='w-10 h-10' /></a> : "-"
         },
         {
             name: "KTP Suami/Istri",
             right: false,
-            selector: (row: Debtor) => row.partner_ktp ? <a href={row.partner_ktp} target='_blank'><img src={row.partner_ktp} className='w-10' /></a> : "-"
+            selector: (row: Debtor) => row.partner_ktp ? <a href={row.partner_ktp} target='_blank'><img src={JSON.parse(row.partner_ktp)} className='w-10 h-10' /></a> : "-"
         },
         {
             name: "Status",
