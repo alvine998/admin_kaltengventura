@@ -39,7 +39,7 @@ export default function Button(props: Props) {
             }
             {
                 color == 'white' &&
-                <button {...props} className='w-full p-1 bg-white rounded-md text-green-500'>
+                <button {...props} className='w-full p-1 border bg-white rounded-md text-green-500'>
                     {children}
                 </button>
             }
