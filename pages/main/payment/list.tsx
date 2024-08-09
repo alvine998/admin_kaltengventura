@@ -11,6 +11,7 @@ import { CONFIG } from '@/config'
 import { Debtor } from '@/types/debtor'
 import { Payment } from '@/types/payment'
 import { formatDateToIndonesian, formatToIDRCurrency } from '@/utils'
+import moment from 'moment'
 
 export async function getServerSideProps(context: any) {
     const { search, page, size } = context.query;
@@ -42,6 +43,11 @@ export default function List({ table }: { table: any }) {
             selector: (row: Payment) => row?.application_contract
         },
         {
+            name: "Debitur",
+            right: false,
+            selector: (row: any) => row?.application?.user_name
+        },
+        {
             name: "Tanggal Ditagihkan",
             right: false,
             selector: (row: Payment) => row?.due_date
@@ -59,7 +65,7 @@ export default function List({ table }: { table: any }) {
         {
             name: "Tanggal Pembayaran",
             right: false,
-            selector: (row: Payment) => row?.payment_date || "-"
+            selector: (row: Payment) => moment(row?.payment_date).format("DD-MMMM-YYYY hh:mm")
         },
         {
             name: "Foto",
