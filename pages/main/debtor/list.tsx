@@ -14,6 +14,7 @@ import { FaCheck, FaPencil, FaTrash, FaX } from "react-icons/fa6";
 import Select from "@/components/Select";
 import Swal from "sweetalert2";
 import { FaPencilAlt } from "react-icons/fa";
+import Link from "next/link";
 
 export async function getServerSideProps(context: any) {
   const { search, page, size } = context.query;
@@ -94,9 +95,9 @@ export default function List({ table, users }: any) {
       right: false,
       selector: (row: Debtor) =>
         row.kk ? (
-          <a href={row.kk} target="_blank">
+          <Link href={JSON.parse(row.kk)} target="_blank">
             <img src={JSON.parse(row.kk)} className="w-10 h-10" />
-          </a>
+          </Link>
         ) : (
           "-"
         ),
@@ -106,9 +107,9 @@ export default function List({ table, users }: any) {
       right: false,
       selector: (row: Debtor) =>
         row.ktp ? (
-          <a href={row.ktp} target="_blank">
+          <Link href={JSON.parse(row.ktp)} target="_blank">
             <img src={JSON.parse(row.ktp)} className="w-10 h-10" />
-          </a>
+          </Link>
         ) : (
           "-"
         ),
@@ -118,9 +119,9 @@ export default function List({ table, users }: any) {
       right: false,
       selector: (row: Debtor) =>
         row.partner_ktp ? (
-          <a href={row.partner_ktp} target="_blank">
+          <Link href={JSON.parse(row.partner_ktp)} target="_blank">
             <img src={JSON.parse(row.partner_ktp)} className="w-10 h-10" />
-          </a>
+          </Link>
         ) : (
           "-"
         ),
@@ -172,7 +173,9 @@ export default function List({ table, users }: any) {
                   setImages({
                     ktp: JSON.parse(row?.ktp),
                     kk: JSON.parse(row?.kk),
-                    partner_ktp: row?.partner_ktp ? JSON.parse(row?.partner_ktp) : null,
+                    partner_ktp: row?.partner_ktp
+                      ? JSON.parse(row?.partner_ktp)
+                      : null,
                   });
                   setLoans(row?.other_loan == 1 ? true : false);
                 }}
