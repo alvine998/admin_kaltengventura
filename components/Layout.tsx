@@ -15,7 +15,7 @@ export default function Layout({ children }: any) {
     return (
         <div className='relative'>
             <Topbar open={open} setOpen={setOpen} />
-            <div className={`${open ? "pt-24" : ""}`}>
+            <div className={`${open ? "pt-24" : "p-5"}`}>
                 {children}
             </div>
         </div>

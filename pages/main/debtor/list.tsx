@@ -339,8 +339,8 @@ export default function List({ table, users }: any) {
           ""
         )}
         <h1 className="text-2xl font-semibold">Data Debitur</h1>
-        <div className="flex justify-between items-center my-2">
-          <div className="w-1/6">
+        <div className="flex lg:flex-row flex-col justify-between items-center my-2">
+          <div className="lg:w-1/6 w-full">
             <Button
               type="button"
               onClick={() => {
@@ -356,7 +356,7 @@ export default function List({ table, users }: any) {
               Tambah Data
             </Button>
           </div>
-          <div className="w-1/4">
+          <div className="lg:w-1/4 w-full">
             <Input
               label=""
               placeholder="Cari Disini..."
