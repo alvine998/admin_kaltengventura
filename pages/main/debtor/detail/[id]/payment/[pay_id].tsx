@@ -16,6 +16,8 @@ import { FaCheck, FaX } from "react-icons/fa6";
 import { RxDoubleArrowRight } from "react-icons/rx";
 import moment from "moment";
 import { FaPenSquare } from "react-icons/fa";
+import Swal from "sweetalert2";
+import Link from "next/link";
 
 export async function getServerSideProps(context: any) {
   const { search, page, size } = context.query;
@@ -53,6 +55,9 @@ export default function List({ table, params }: any) {
   const [show, setShow] = useState<boolean>(false);
   const [admin, setAdmin] = useState<any>();
   const [query, setQuery] = useState<any>();
+  const [images, setImages] = useState<any>({
+    photo: "",
+  });
 
   const columns: any = [
     {
@@ -79,19 +84,16 @@ export default function List({ table, params }: any) {
           : "-",
     },
     {
-      name: "Bank",
+      name: "Bukti Pembayaran",
       right: false,
-      selector: (row: Payment) => (
-        <div>
-          <p className="text-xs">
-            {row?.bank_name}
-            <br />
-            {row?.account_name}
-            <br />
-            <strong>{row?.account_number}</strong>
-          </p>
-        </div>
-      ),
+      selector: (row: Payment) =>
+        row.photo ? (
+          <Link href={row.photo} target="_blank">
+            <img src={row.photo} className="w-10 h-10" />
+          </Link>
+        ) : (
+          "-"
+        ),
     },
     {
       name: "Status",
@@ -108,19 +110,43 @@ export default function List({ table, params }: any) {
       right: false,
       selector: (row: Payment) => (
         <>
-          <>
-            <button
-              onClick={() => {
-                setModal({ ...modal, open: true, data: row, key: "view" });
-              }}
-            >
-              {row?.status == "unpaid" ? (
-                <FaCheck className="text-blue-500 hover:text-blue-600 duration-300 transition text-[20px]" />
-              ) : (
+          {row?.status == "unpaid" && (
+            <>
+              <button
+                onClick={() => {
+                  setImages({ ...images, photo: "" });
+                  setModal({
+                    ...modal,
+                    open: true,
+                    data: row,
+                    key: "changedate",
+                  });
+                }}
+              >
                 <FaPenSquare className="text-green-500 hover:text-green-600 duration-300 transition text-[20px]" />
-              )}
-            </button>
-          </>
+              </button>
+              <button
+                onClick={() => {
+                  setImages({ ...images, photo: "" });
+                  setModal({ ...modal, open: true, data: row, key: "view" });
+                }}
+              >
+                <FaCheck className="text-blue-500 hover:text-blue-600 duration-300 transition text-[20px] ml-2" />
+              </button>
+            </>
+          )}
+          {row?.status == "paid" && (
+            <>
+              <button
+                onClick={() => {
+                  setImages({ ...images, photo: "" });
+                  setModal({ ...modal, open: true, data: row, key: "view" });
+                }}
+              >
+                <FaPenSquare className="text-green-500 hover:text-green-600 duration-300 transition text-[20px]" />
+              </button>
+            </>
+          )}
         </>
       ),
     },
@@ -130,6 +156,7 @@ export default function List({ table, params }: any) {
     const result2: any = await localStorage.getItem("from");
     setAdmin(JSON.parse(result!));
     setQuery(JSON.parse(result2));
+    console.log(result2);
   };
 
   useEffect(() => {
@@ -183,6 +210,7 @@ export default function List({ table, params }: any) {
           query?.user_from == "apps"
             ? new Date().toISOString()
             : formData?.date,
+        photo: images?.photo,
       };
       const result = await axios.patch(
         CONFIG.base_url_api + `/payment`,
@@ -203,6 +231,48 @@ export default function List({ table, params }: any) {
     } catch (error) {
       console.log(error);
       setInfo({ loading: false, message: "Gagal verifikasi", type: "error" });
+    }
+  };
+
+  const handleChangeDate = async (e: any) => {
+    e.preventDefault();
+    setInfo({ loading: true });
+    const formData: any = Object.fromEntries(new FormData(e.target));
+    try {
+      const payload = {
+        ...formData,
+        status: "unpaid",
+        id: modal.data.id,
+        approved_by: null,
+        payment_fee: 0,
+        due_date:
+          query?.user_from == "apps"
+            ? new Date().toISOString()
+            : formatDateToIndonesian(formData?.due_date),
+      };
+      const result = await axios.patch(
+        CONFIG.base_url_api + `/payment`,
+        payload,
+        {
+          headers: { "bearer-token": "kaltengventura2023" },
+        }
+      );
+      setInfo({
+        loading: false,
+        message: "Berhasil Ubah Tanggal Ditagihkan",
+        type: "success",
+      });
+      setModal({ ...modal, open: false });
+      router.push(
+        "/main/debtor/detail/" + params.id + "/payment/" + params.pay_id
+      );
+    } catch (error) {
+      console.log(error);
+      setInfo({
+        loading: false,
+        message: "Gagal Ubah Tanggal Ditagihkan",
+        type: "error",
+      });
     }
   };
 
@@ -263,7 +333,7 @@ export default function List({ table, params }: any) {
             ""
           )}
         </div>
-        {modal.key == "view" ? (
+        {modal.key == "view" || modal.key == "changedate" ? (
           <>
             <Modal
               open={modal.open}
@@ -271,9 +341,17 @@ export default function List({ table, params }: any) {
             >
               <div>
                 <h1 className="text-center font-bold text-lg">
-                  {"Verifikasi Pembayaran"}
+                  {modal.key == "changedate"
+                    ? "Ubah Tanggal Ditagihkan"
+                    : "Verifikasi Pembayaran"}
                 </h1>
-                <form onSubmit={handleVerification}>
+                <form
+                  onSubmit={
+                    modal.key == "changedate"
+                      ? handleChangeDate
+                      : handleVerification
+                  }
+                >
                   <input
                     type="text"
                     className="hidden"
@@ -286,27 +364,93 @@ export default function List({ table, params }: any) {
                     value={admin?.name}
                     name="admin_name"
                   />
-                  {modal.data.photo ? (
+                  {modal.key == "view" && modal.data.status == "paid" && (
                     <>
-                      <img
-                        src={modal.data.photo}
-                        className="w-full h-[300px]"
-                        alt="bukti-bayar"
-                      />
+                      {modal.data.photo ? (
+                        <>
+                          <img
+                            src={modal.data.photo}
+                            className="w-full h-[300px]"
+                            alt="bukti-bayar"
+                          />
+                        </>
+                      ) : (
+                        <p className="text-center my-5">
+                          Tidak ada bukti upload
+                        </p>
+                      )}
                     </>
-                  ) : (
-                    <p className="text-center my-5">Tidak ada bukti upload</p>
                   )}
+
+                  {modal.key == "view" && modal.data.status == "unpaid" && (
+                    <>
+                      <div className="flex md:flex-row flex-col gap-2 items-center my-2">
+                        <Input
+                          label="Bukti Pembayaran"
+                          name="photo"
+                          required
+                          type="file"
+                          accept="image/*"
+                          onChange={(e: any) => {
+                            const file = e.target.files[0];
+                            const reader = new FileReader();
+
+                            const maxSizeMB = 1;
+                            const maxSizeBytes = maxSizeMB * 1024 * 1024;
+
+                            if (file.size > maxSizeBytes) {
+                              Swal.fire({
+                                text: "Ukuran file tidak boleh lebih dari 1 MB",
+                                icon: "warning",
+                              });
+                              setImages({ ...images, photo: "" });
+                              return false;
+                            }
+                            reader.onload = () => {
+                              const base64 = reader.result;
+                              setImages({ ...images, photo: base64 });
+                            };
+                            reader.readAsDataURL(file);
+                          }}
+                        />
+                        {images?.photo && (
+                          <img
+                            src={images?.photo}
+                            className="w-full md:h-[200px]"
+                          />
+                        )}
+                      </div>
+                    </>
+                  )}
+
                   {/* <Input label='Nama Bank' placeholder='Masukkan Nama Bank' name='bank_name' required />
                                         <Input label='Nama Pemilik Rekening' placeholder='Masukkan Nama Pemilik Rekening' name='account_name' required /> */}
-                  {query?.user_from == "admin" && (
+                  {modal.data.status == "unpaid" &&
+                  modal.key == "changedate" ? (
+                    <Input
+                      label="Tanggal Ditagihkan"
+                      type="date"
+                      name="due_date"
+                      defaultValue={moment(modal.data.due_date).format(
+                        "YYYY-MM-DD"
+                      )}
+                      required
+                    />
+                  ) : (
+                    ""
+                  )}
+                  {modal.key !== "changedate" && (
                     <Input
                       label="Tanggal Bayar"
                       type="datetime-local"
                       name="date"
+                      defaultValue={moment(modal.data.payment_date).format(
+                        "YYYY-MM-DDTHH:mm"
+                      )}
                       required
                     />
                   )}
+
                   <div className="my-4">
                     <Button type="submit" disabled={info.loading}>
                       {info.loading ? "Menyimpan..." : "Simpan"}

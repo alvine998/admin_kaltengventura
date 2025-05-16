@@ -577,7 +577,7 @@ export default function List({ table, users }: any) {
                     <Input
                       label="KTP"
                       name="ktp"
-                      required
+                      required={modal.data?.ktp ? false : true}
                       type="file"
                       accept="image/*"
                       onChange={(e: any) => {
@@ -599,7 +599,7 @@ export default function List({ table, users }: any) {
                       label="Kartu Keluarga"
                       name="kk"
                       accept="image/*"
-                      required
+                      required={modal.data?.kk ? false : true}
                       type="file"
                       onChange={(e: any) => {
                         const file = e.target.files[0];

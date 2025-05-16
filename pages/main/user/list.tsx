@@ -67,6 +67,11 @@ export default function List({ table }: { table: any }) {
           "-"
         ),
     },
+     {
+      name: "Role",
+      right: false,
+      selector: (row: any) => row?.from,
+    },
     {
       name: "Status",
       right: false,
